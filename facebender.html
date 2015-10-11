@@ -57,7 +57,26 @@
 	[[165,186], [165,193],],
 	[[162,232], [162,238],],
 	[[153,218], [162,216], [173,219],],
-	]; 
+	];
+	
+	var faceData = [];
+	
+	var f = 1;
+	
+	var offsetX = 250;
+	
+	function makeUpdater(feat) {
+		return function() {
+			for (var i = 0; i < faceData[feat].length; i++) {
+				var normX = points[feat][i][0];
+				var normY = points[feat][i][1];
+				var faceX = faceData[feat][i].X();
+				var faceY = faceData[feat][i].Y();
+				this.dataX[i] = faceX + f*(faceX-normX) + offsetX;
+				this.dataY[i] = faceY + f*(faceY-normY);
+			}
+		};
+	};
 	
 	for (var feature = 0; feature < points.length; feature++) {
 		var featurePoints = points[feature];
@@ -67,13 +86,15 @@
 		// TODO: make eyes fixed so you can't move them
 		for (var i = 0; i < featurePoints.length; i++) {
 			p[i] = board.create('point', featurePoints[i], {name: '', size: 1, face: 'o'});
-			x[i] = featurePoints[i][0] + 250;
+			x[i] = featurePoints[i][0] + offsetX;
 			y[i] = featurePoints[i][1];
 		}
+		faceData[feature] = p;
 		for (var i = 1; i < p.length; i++) {
 			board.create('segment', [p[i-1], p[i]]);
 		}
 		var c = board.create('curve', [x, y]);
+		c.updateDataArray = makeUpdater(feature);
 	}
 		
     </script>
