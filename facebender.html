@@ -7,6 +7,12 @@
   </head>
 
   <body>
+	<div id="controls">
+      <form id="form">
+      Open image: <input type="text" name="imageUrl" id="imageInput" size="180"/>
+      <input type="submit" value="Load">
+      </form>
+    </div>
 	<div id="box" style="width:1000px; height:1000px;"></div>
     <script type="text/javascript">
 	var board = JXG.JSXGraph.initBoard("box", {
@@ -78,6 +84,33 @@
 		};
 	};
 	
+	// draw the background image
+	function drawImage(imgx, imgy, imgw, imgh, imageUrl, fixed, origin) {
+	  if (imageUrl != null) {
+	    if (imgw == 0) { // image hasn't been loaded before, so calculate its dimensions
+	      $('body').append('<div id="init"><img id="spiralImage" src="' + imageUrl + '" /></div>');
+	      $('#init').hide();
+	      $('#spiralImage').bind("load",function() {
+	          var imWidthPx = this.width;
+	          var imHeightPx = this.height;
+	          var widthPx = $('#box').width();
+	          var heightPx = $('#box').height();
+	          var boundingBox = board.getBoundingBox();
+	          var minx = boundingBox[0];
+	          var miny = boundingBox[1];
+	          var maxx = boundingBox[2];
+	          var maxy = boundingBox[3];
+              var p = board.create('point',[minx + (maxx - minx) * imWidthPx/widthPx, miny + (maxy - miny) * imHeightPx/heightPx], {size:10, opacity:0.3});
+	          image = board.create('image', [imageUrl,
+	            [minx, function(){return p.Y();}],
+	              [function(){return p.X();}, function(){return p.Y();}] ], {fixed: fixed});
+	      });
+	    } else {
+	      image = board.create('image', [imageUrl, origin || [imgx, imgy], [imgw, imgh] ], {fixed: fixed});
+	    }
+	  }  
+	}
+	
 	for (var feature = 0; feature < points.length; feature++) {
 		var featurePoints = points[feature];
 		var p = [];
@@ -96,6 +129,17 @@
 		var c = board.create('curve', [x, y]);
 		c.updateDataArray = makeUpdater(feature);
 	}
+	
+	// TODO: open an image and allow it to be moved around (like spirals)
+	var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom2.jpg"
+	drawImage(0, 0, 0, 0, imageUrl, true, [0, 0]); 
+	
+	// TODO: allow image to be scaled up and down
+	// TODO: *or* click on each eye first so that it positions the image correctly
+	
+	// TODO: give each point a name
+	
+	// TODO: save image
 		
     </script>
   </body>
