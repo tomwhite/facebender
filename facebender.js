@@ -6,6 +6,8 @@ var board = JXG.JSXGraph.initBoard("box", {
 	axis: true
 });
 
+var pointSize = 0.5;
+
 var points = [
 [[135,145],],
 [[190,145],],
@@ -145,7 +147,7 @@ function chooseNextFeature() {
 				if (canCreate) {
 					// create a point on the image
 					// TODO: make tooltip show name of feature (https://groups.google.com/forum/#!topic/jsxgraph/HMObRq6W_GQ)
-					p = board.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: 1, face: 'o'});
+					p = board.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o'});
 					if (subFeatureIndex == 0) {
 						faceData.push([p]);
 					} else {
@@ -185,28 +187,25 @@ function chooseNextFeature() {
 }
 
 function showAverageFace() {
-	// TODO: transform so that face has eyes same distance apart, level with photo, and to the right of photo
 	var translation = board.create('transform', [0, 0], {type:'translate'});
 	for (var feature = 0; feature < points.length; feature++) {
 		var featurePoints = points[feature];
 		var p = [];
 		var x = [];
 		var y = [];
-		// TODO: make eyes fixed so you can't move them
 		for (var i = 0; i < featurePoints.length; i++) {
-			p[i] = board.create('point', featurePoints[i], {name: '', size: 1, face: 'o', visible: false});
+			p[i] = board.create('point', featurePoints[i], {name: '', size: pointSize, face: 'o', visible: false, fixed: true});
 			translation.bindTo(p[i]);
-			//x[i] = featurePoints[i][0] + offsetX;
-			//y[i] = featurePoints[i][1];
 		}
 		averageFaceData[feature] = p;
-		// TODO: create point for features of length 1 (pupils)
+		if (p.length == 1) { // create point for features of length 1 (pupils)
+			var point = board.create('point', [p[0].X(), p[0].Y()], {name: '', size: pointSize, face: 'o', color: 'blue', fixed: true});
+			// don't add to averageFaceSegments as the pupils are fixed
+		}
 		for (var i = 1; i < p.length; i++) {
 			var segment = board.create('segment', [p[i-1], p[i]]);
 			averageFaceSegments.push(segment);
 		}
-//			var c = board.create('curve', [x, y]);
-//			c.updateDataArray = makeUpdater(feature);
 	}
 }
 
