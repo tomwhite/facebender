@@ -88,7 +88,8 @@
 			}
 		};
 	};
-	
+
+	var image;
 	var resizePoint;
 	
 	// draw the background image
@@ -162,15 +163,26 @@
 			        }
 
 			        if (canCreate) {
-			            board.create('point', [coords.usrCoords[1], coords.usrCoords[2]]);
+			        	// create a point on the image
+			            board.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: 1, face: 'o'});
+
+						// hide the point on the average face
+			            if (featureIndex > 1) {
+  				            faceData[featureIndex][subFeatureIndex].setProperty({visible:false});
+			            }
+
 			            var subFeatureCount = points[featureIndex].length;
 			            if (++subFeatureIndex == subFeatureCount) {
 				            featureIndex++;
 				            subFeatureIndex = 0;
 			            }
 			            pointIndex++;
-			            if (featureIndex == 2) {
+			            if (featureIndex == 2 && subFeatureIndex == 0) {
 			            	showAverageFace();
+			            }
+						// show the next point on the average face
+			            if (featureIndex > 1) {
+  				            faceData[featureIndex][subFeatureIndex].setProperty({visible:true});
 			            }
 			            chooseNextFeature();
 			        }
@@ -182,6 +194,8 @@
 	}
 
 	function showAverageFace() {
+		// TODO: transform so that face has eyes same distance apart, level with photo, and to the right of photo
+		var translation = board.create('transform', [200, 0], {type:'translate'});
 		for (var feature = 0; feature < points.length; feature++) {
 			var featurePoints = points[feature];
 			var p = [];
@@ -189,11 +203,13 @@
 			var y = [];
 			// TODO: make eyes fixed so you can't move them
 			for (var i = 0; i < featurePoints.length; i++) {
-				p[i] = board.create('point', featurePoints[i], {name: '', size: 1, face: 'o', color: 'none'});
+				p[i] = board.create('point', featurePoints[i], {name: '', size: 1, face: 'o', visible: false});
+				translation.bindTo(p[i]);
 				//x[i] = featurePoints[i][0] + offsetX;
 				//y[i] = featurePoints[i][1];
 			}
 			faceData[feature] = p;
+			// TODO: create point for features of length 1 (pupils)
 			for (var i = 1; i < p.length; i++) {
 				board.create('segment', [p[i-1], p[i]]);
 			}
