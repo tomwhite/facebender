@@ -80,7 +80,7 @@ var resizePoint;
 function drawImage(imgx, imgy, imgw, imgh, imageUrl, fixed, origin) {
   if (imageUrl != null) {
 	if (imgw == 0) { // image hasn't been loaded before, so calculate its dimensions
-	  $('body').append('<div id="init"><img id="spiralImage" src="' + imageUrl + '" /></div>');
+	  $('body').append('<div id="init"><img id="faceImage" src="' + imageUrl + '" /></div>');
 	  $('#init').hide();
 	  $('#spiralImage').bind("load",function() {
 		  var imWidthPx = this.width;
