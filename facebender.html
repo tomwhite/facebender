@@ -131,6 +131,7 @@
 	}
 	
 	var featureIndex = 0;
+	var subFeatureIndex = 0;
 	
 	function chooseNextFeature() {
 		if (featureIndex == 0) {
@@ -161,14 +162,18 @@
 
 			        if (canCreate) {
 			            board.create('point', [coords.usrCoords[1], coords.usrCoords[2]]);
-			            featureIndex++;
+			            var subFeatureCount = points[featureIndex].length;
+			            if (++subFeatureIndex == subFeatureCount) {
+				            featureIndex++;
+				            subFeatureIndex = 0;
+			            }
 			            chooseNextFeature();
 			        }
 			    };
 
 			board.on('down', down);
 		}
-		$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + '</p>');
+		$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p>');
 	}
 	
 	function showAllFeatures() {
