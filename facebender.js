@@ -56,6 +56,7 @@ var features = [
 ];
 
 var averageFaceData = [];
+var averageFaceSegments = [];
 var faceData = [];
 var faceDataTransformed = [];
 
@@ -201,7 +202,8 @@ function showAverageFace() {
 		averageFaceData[feature] = p;
 		// TODO: create point for features of length 1 (pupils)
 		for (var i = 1; i < p.length; i++) {
-			board.create('segment', [p[i-1], p[i]]);
+			var segment = board.create('segment', [p[i-1], p[i]]);
+			averageFaceSegments.push(segment);
 		}
 //			var c = board.create('curve', [x, y]);
 //			c.updateDataArray = makeUpdater(feature);
@@ -233,10 +235,19 @@ function bendFace() {
 			x[i] = fpt.X();
 			y[i] = fpt.Y();
 			faceFeaturePointsTransformed[i] = fpt;
+
+			// hide average face points
+			averageFaceData[feature][i].setProperty({visible: false});
 		}
 		faceDataTransformed[feature] = faceFeaturePointsTransformed;
 		var c = board.create('curve', [x, y]);
 		c.updateDataArray = makeUpdater(feature, slider);
+
+	}
+
+	// hide average face segments
+	for (var i = 0; i < averageFaceSegments.length; i++) {
+		averageFaceSegments[i].setProperty({visible: false});
 	}
 }
 
