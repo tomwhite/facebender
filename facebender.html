@@ -132,6 +132,7 @@
 	
 	var featureIndex = 0;
 	var subFeatureIndex = 0;
+	var pointIndex = 0;
 	
 	function chooseNextFeature() {
 		if (featureIndex == 0) {
@@ -167,6 +168,10 @@
 				            featureIndex++;
 				            subFeatureIndex = 0;
 			            }
+			            pointIndex++;
+			            if (featureIndex == 2) {
+			            	showAverageFace();
+			            }
 			            chooseNextFeature();
 			        }
 			    };
@@ -175,8 +180,8 @@
 		}
 		$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p>');
 	}
-	
-	function showAllFeatures() {
+
+	function showAverageFace() {
 		for (var feature = 0; feature < points.length; feature++) {
 			var featurePoints = points[feature];
 			var p = [];
@@ -184,25 +189,22 @@
 			var y = [];
 			// TODO: make eyes fixed so you can't move them
 			for (var i = 0; i < featurePoints.length; i++) {
-				p[i] = board.create('point', featurePoints[i], {name: '', size: 1, face: 'o'});
-				x[i] = featurePoints[i][0] + offsetX;
-				y[i] = featurePoints[i][1];
+				p[i] = board.create('point', featurePoints[i], {name: '', size: 1, face: 'o', color: 'none'});
+				//x[i] = featurePoints[i][0] + offsetX;
+				//y[i] = featurePoints[i][1];
 			}
 			faceData[feature] = p;
 			for (var i = 1; i < p.length; i++) {
 				board.create('segment', [p[i-1], p[i]]);
 			}
-			var c = board.create('curve', [x, y]);
-			c.updateDataArray = makeUpdater(feature);
+//			var c = board.create('curve', [x, y]);
+//			c.updateDataArray = makeUpdater(feature);
 		}
 	}
-	
+
 	// TODO: open an image and allow it to be moved around (like spirals)
 	var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom2.jpg"
 	drawImage(0, 0, 0, 0, imageUrl, true, [0, 0]); 
-	
-	// TODO: allow image to be scaled up and down
-	// TODO: *or* click on each eye first so that it positions the image correctly
 	
 	// TODO: give each point a name
 	
