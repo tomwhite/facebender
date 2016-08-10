@@ -1,16 +1,16 @@
 var board = JXG.JSXGraph.initBoard("box", {
-	boundingbox: [0, 0, 500, 500],
+	boundingbox: [0, 0, 500, 300],
 	keepAspectRatio: true,
 	showCopyright: false,
 	showNavigation: false,
-	axis: false
+	axis: true
 });
 
 var points = [
 [[135,145],],
 [[190,145],],
 [[128,144], [133,149], [140,144], [135,141], [128,144], ],
-//[[184,144], [189,149], [196,144], [190,141], [184,144], ],
+[[184,144], [189,149], [196,144], [190,141], [184,144], ],
 //[[119,147], [133,140], [147,146],],
 //[[177,147], [190,141], [203,147],],
 //[[121,147], [133,150], [147,146],],
@@ -52,66 +52,59 @@ var features = [
 "left pupil",
 "right pupil",
 "left iris",
-//"right iris",
+"right iris",
 ];
 
 var averageFaceData = [];
 var faceData = [];
-
-var offsetX = 250;
+var faceDataTransformed = [];
 
 function makeUpdater(feat, slider) {
 	return function() {
 		for (var i = 0; i < points[feat].length; i++) {
 			var normX = points[feat][i][0];
 			var normY = points[feat][i][1];
-			var faceX = faceData[feat][i].X();
-			var faceY = faceData[feat][i].Y();
-			this.dataX[i] = faceX + slider.Value()*(faceX-normX) + offsetX;
+			var faceX = faceDataTransformed[feat][i].X();
+			var faceY = faceDataTransformed[feat][i].Y();
+			this.dataX[i] = faceX + slider.Value()*(faceX-normX);
 			this.dataY[i] = faceY + slider.Value()*(faceY-normY);
 		}
 	};
 };
 
 var image;
-var resizePoint;
 
 // draw the background image
-function drawImage(imgx, imgy, imgw, imgh, imageUrl, fixed, origin) {
-  if (imageUrl != null) {
-	if (imgw == 0) { // image hasn't been loaded before, so calculate its dimensions
-	  $('body').append('<div id="init"><img id="faceImage" src="' + imageUrl + '" /></div>');
-	  $('#init').hide();
-	  $('#spiralImage').bind("load",function() {
-		  var imWidthPx = this.width;
-		  var imHeightPx = this.height;
-		  var widthPx = $('#box').width();
-		  var heightPx = $('#box').height();
-		  var boundingBox = board.getBoundingBox();
-		  var minx = boundingBox[0];
-		  var miny = boundingBox[1];
-		  var maxx = boundingBox[2];
-		  var maxy = boundingBox[3];
-		  var width = minx + (maxx - minx) * imWidthPx/widthPx;
-		  var height = miny + (maxy - miny) * imHeightPx/heightPx;
-		  resizePoint = board.create('point', [width, height], { size:10, opacity:0.3, name:"" });
-		  image = board.create('image', [imageUrl,
-			[minx, function(){ return calculateAspectRatioFit(width, height, resizePoint).height; }],
-			  [function(){ return calculateAspectRatioFit(width, height, resizePoint).width; }, function(){ return calculateAspectRatioFit(width, height, resizePoint).height; }] ], {fixed: fixed});
-	  });
-	} else {
-	  image = board.create('image', [imageUrl, origin || [imgx, imgy], [imgw, imgh] ], {fixed: fixed});
-	}
-  }
+function drawImage(imageUrl) {
+	$('body').append('<div id="init"><img id="faceImage" src="' + imageUrl + '" /></div>');
+	$('#init').hide();
+	$('#faceImage').bind("load",function() {
+	  var imWidthPx = this.width;
+	  var imHeightPx = this.height;
+	  var widthPx = $('#box').width() / 2;
+	  var heightPx = $('#box').height();
+	  var boundingBox = board.getBoundingBox();
+	  var minx = boundingBox[0];
+	  var miny = boundingBox[1];
+	  var maxx = boundingBox[2];
+	  var maxy = boundingBox[3];
+	  var width = (maxx - minx) * imWidthPx/widthPx;
+	  var height = (maxy - miny) * imHeightPx/heightPx;
+	  var w = (maxx - minx)/2;
+	  var h = maxy - miny;
+	  var c = calculateAspectRatioFit(width/2, height, w, h);
+	  image = board.create('image', [imageUrl,
+		[minx + w/2 - c.width/2 + w, c.height], [c.width, c.height] ], {fixed: true});
+	});
 }
 
-function calculateAspectRatioFit(srcWidth, srcHeight, p) {
-	var ratio = Math.min(p.X() / srcWidth, p.Y() / srcHeight);
-	return { width: srcWidth*ratio, height: srcHeight*ratio };
+// http://stackoverflow.com/questions/3971841/how-to-resize-images-proportionally-keeping-the-aspect-ratio
+function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
+    var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+    return { width: srcWidth*ratio, height: srcHeight*ratio };
 }
 
 function resizeDone() {
-	board.removeObject(resizePoint);
 	chooseNextFeature();
 }
 
@@ -184,14 +177,14 @@ function chooseNextFeature() {
 				}
 			};
 
-		handlerId = board.on('down', down);
+		board.on('down', down);
 	}
 	$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p>');
 }
 
 function showAverageFace() {
 	// TODO: transform so that face has eyes same distance apart, level with photo, and to the right of photo
-	var translation = board.create('transform', [200, 0], {type:'translate'});
+	var translation = board.create('transform', [0, 0], {type:'translate'});
 	for (var feature = 0; feature < points.length; feature++) {
 		var featurePoints = points[feature];
 		var p = [];
@@ -215,15 +208,32 @@ function showAverageFace() {
 }
 
 function bendFace() {
-	var slider = board.create('slider',[[0, 10],[100, 10],[0, 1, 5]]);
+
+    var lp = faceData[0][0];
+    var rp = faceData[1][0];
+
+	// translate left pupil to origin
+	var t1 = board.create('transform', [-lp.X(), -lp.Y()], {type:'translate'});
+	// scale so that distance between eyes is the same as average face
+	var factor = JXG.Math.Geometry.distance(points[0][0], points[1][0]) / JXG.Math.Geometry.distance([lp.X(), lp.Y()], [rp.X(), rp.Y()]);
+	var t2 = board.create('transform', [factor, factor], {type:'scale'});
+	// translate back to average left pupil
+	var t3 = board.create('transform', points[0][0], {type:'translate'});
+
+	var slider = board.create('slider',[[0, 10],[100, 10],[-1, -1, 5]]);
 	for (var feature = 0; feature < points.length; feature++) {
-		var featurePoints = points[feature];
+		var faceFeaturePoints = faceData[feature];
 		var x = [];
 		var y = [];
-		for (var i = 0; i < featurePoints.length; i++) {
-			x[i] = featurePoints[i][0] + offsetX * 2;
-			y[i] = featurePoints[i][1];
+		var faceFeaturePointsTransformed = [];
+		for (var i = 0; i < faceFeaturePoints.length; i++) {
+			var fp = faceFeaturePoints[i];
+			var fpt = board.create('point', [fp, [t1, t2, t3]], {color: 'green', visible: false});
+			x[i] = fpt.X();
+			y[i] = fpt.Y();
+			faceFeaturePointsTransformed[i] = fpt;
 		}
+		faceDataTransformed[feature] = faceFeaturePointsTransformed;
 		var c = board.create('curve', [x, y]);
 		c.updateDataArray = makeUpdater(feature, slider);
 	}
@@ -231,6 +241,6 @@ function bendFace() {
 
 // TODO: open an image and allow face to be cropped
 var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg"
-drawImage(0, 0, 0, 0, imageUrl, true, [0, 0]);
+drawImage(imageUrl);
 
 // TODO: save image
