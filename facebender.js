@@ -12,7 +12,7 @@ var points = [
 [[135,145],],
 [[190,145],],
 [[128,144], [133,149], [140,144], [135,141], [128,144], ],
-[[184,144], [189,149], [196,144], [190,141], [184,144], ],
+//[[184,144], [189,149], [196,144], [190,141], [184,144], ],
 //[[119,147], [133,140], [147,146],],
 //[[177,147], [190,141], [203,147],],
 //[[121,147], [133,150], [147,146],],
@@ -54,7 +54,23 @@ var features = [
 "left pupil",
 "right pupil",
 "left iris",
-"right iris",
+//"right iris",
+//"bottom of left eyelid",
+//"bottom of right eyelid",
+//"bottom of left eye",
+//"bottom of right eye",
+//"top of left eye",
+//"top of right eye",
+//"left eye line",
+//"right eye line",
+//"left side of nose",
+//"right side of nose",
+//"left nostril",
+//"right nostril",
+//"top of left eyebrow",
+//"top of right eyebrow",
+//"bottom of left eyebrow",
+//"bottom of right eyebrow",
 ];
 
 var averageFaceData = [];
@@ -108,12 +124,12 @@ function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
 }
 
 function resizeDone() {
+	showAverageFace();
 	chooseNextFeature();
 }
 
 var featureIndex = 0;
 var subFeatureIndex = 0;
-var pointIndex = 0;
 var downEnabled = true;
 
 function chooseNextFeature() {
@@ -155,24 +171,16 @@ function chooseNextFeature() {
 					}
 
 					// dim the corresponding point on the average face
-					if (featureIndex > 1) {
-						averageFaceData[featureIndex][subFeatureIndex].setProperty({opacity:0.3});
-					}
+					averageFaceData[featureIndex][subFeatureIndex].setProperty({opacity:0.3});
 
 					var subFeatureCount = points[featureIndex].length;
 					if (++subFeatureIndex == subFeatureCount) {
 						featureIndex++;
 						subFeatureIndex = 0;
 					}
-					pointIndex++;
-					if (featureIndex == 2 && subFeatureIndex == 0) {
-						showAverageFace();
-					}
-					// highlight the next point on the average face
-					if (featureIndex > 1 && featureIndex < features.length) {
-						averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true});
-					}
 					if (featureIndex < features.length) {
+						// highlight the next point on the average face
+						averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true});
 						chooseNextFeature();
 					} else {
 						downEnabled = false;
@@ -222,7 +230,7 @@ function bendFace() {
 	// translate back to average left pupil
 	var t3 = board.create('transform', points[0][0], {type:'translate'});
 
-	var slider = board.create('slider',[[0, 10],[100, 10],[-1, -1, 5]]);
+	var slider = board.create('slider',[[0, 10],[100, 10],[-1, -1, 5]], {snapWidth: 0.2});
 	for (var feature = 0; feature < points.length; feature++) {
 		var faceFeaturePoints = faceData[feature];
 		var x = [];
@@ -248,6 +256,8 @@ function bendFace() {
 	for (var i = 0; i < averageFaceSegments.length; i++) {
 		averageFaceSegments[i].setProperty({visible: false});
 	}
+
+	$('#controls').html('<p id="instruction">Facebender</p>');
 }
 
 // TODO: open an image and allow face to be cropped
