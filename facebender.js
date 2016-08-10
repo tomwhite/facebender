@@ -143,6 +143,7 @@ function chooseNextFeature() {
 
 				if (canCreate) {
 					// create a point on the image
+					// TODO: make tooltip show name of feature (https://groups.google.com/forum/#!topic/jsxgraph/HMObRq6W_GQ)
 					p = board.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: 1, face: 'o'});
 					if (subFeatureIndex == 0) {
 						faceData.push([p]);
