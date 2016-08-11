@@ -281,7 +281,19 @@ function bendFace() {
 		averageFaceSegments[i].setProperty({visible: false});
 	}
 
+	var json = JSON.stringify(toPointsArray(faceDataTransformed));
+	// TODO: store JSON in a file or in local storage
+
 	$('#controls').html('<p id="instruction">Facebender</p>');
+}
+
+/*
+ * Convert a nested array of points to simple points (two-element arrays of double).
+ */
+function toPointsArray(jsxgraphPoints) {
+	return jsxgraphPoints.map(function(arr) {
+		return arr.map(function(p){return [p.X(), p.Y()];});
+	});
 }
 
 // TODO: open an image and allow face to be cropped
