@@ -1,5 +1,13 @@
 var board = JXG.JSXGraph.initBoard("box", {
-	boundingbox: [0, 0, 500, 300],
+	boundingbox: [0, 0, 250, 300],
+	keepAspectRatio: true,
+	showCopyright: false,
+	showNavigation: false,
+	axis: true
+});
+
+var imageBoard = JXG.JSXGraph.initBoard("imageBox", {
+	boundingbox: [0, 0, 250, 300],
 	keepAspectRatio: true,
 	showCopyright: false,
 	showNavigation: false,
@@ -119,20 +127,20 @@ function drawImage(imageUrl) {
 	$('#faceImage').bind("load",function() {
 	  var imWidthPx = this.width;
 	  var imHeightPx = this.height;
-	  var widthPx = $('#box').width() / 2;
-	  var heightPx = $('#box').height();
-	  var boundingBox = board.getBoundingBox();
+	  var widthPx = $('#imageBox').width();
+	  var heightPx = $('#imageBox').height();
+	  var boundingBox = imageBoard.getBoundingBox();
 	  var minx = boundingBox[0];
 	  var miny = boundingBox[1];
 	  var maxx = boundingBox[2];
 	  var maxy = boundingBox[3];
 	  var width = (maxx - minx) * imWidthPx/widthPx;
 	  var height = (maxy - miny) * imHeightPx/heightPx;
-	  var w = (maxx - minx)/2;
+	  var w = maxx - minx;
 	  var h = maxy - miny;
-	  var c = calculateAspectRatioFit(width/2, height, w, h);
-	  image = board.create('image', [imageUrl,
-		[minx + w/2 - c.width/2 + w, c.height], [c.width, c.height] ], {fixed: true});
+	  var c = calculateAspectRatioFit(width, height, w, h);
+	  image = imageBoard.create('image', [imageUrl,
+		[minx + w/2 - c.width/2, c.height], [c.width, c.height] ], {fixed: true});
 	});
 }
 
@@ -155,12 +163,12 @@ function chooseNextFeature() {
 	if (featureIndex == 0) {
 		// from http://jsxgraph.uni-bayreuth.de/wiki/index.php/Browser_event_and_coordinates
 		var getMouseCoords = function(e, i) {
-				var cPos = board.getCoordsTopLeftCorner(e, i),
+				var cPos = imageBoard.getCoordsTopLeftCorner(e, i),
 					absPos = JXG.getPosition(e, i),
 					dx = absPos[0]-cPos[0],
 					dy = absPos[1]-cPos[1];
 
-				return new JXG.Coords(JXG.COORDS_BY_SCREEN, [dx, dy], board);
+				return new JXG.Coords(JXG.COORDS_BY_SCREEN, [dx, dy], imageBoard);
 			};
 		var down = function(e) {
 				if (!downEnabled) return;
@@ -172,8 +180,8 @@ function chooseNextFeature() {
 				}
 				coords = getMouseCoords(e, i);
 
-//				for (el in board.objects) {
-//					if(JXG.isPoint(board.objects[el]) && board.objects[el].hasPoint(coords.scrCoords[1], coords.scrCoords[2])) {
+//				for (el in imageBoard.objects) {
+//					if(JXG.isPoint(imageBoard.objects[el]) && imageBoard.objects[el].hasPoint(coords.scrCoords[1], coords.scrCoords[2])) {
 //						canCreate = false;
 //						break;
 //					}
@@ -183,7 +191,7 @@ function chooseNextFeature() {
 					// create a point on the image
 					// TODO: make tooltip show name of feature (https://groups.google.com/forum/#!topic/jsxgraph/HMObRq6W_GQ)
 					// See also https://groups.google.com/forum/#!topic/jsxgraph/BD2LsWUFppk
-					p = board.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o'});
+					p = imageBoard.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o'});
 					if (subFeatureIndex == 0) {
 						faceData.push([p]);
 					} else {
@@ -209,7 +217,7 @@ function chooseNextFeature() {
 				}
 			};
 
-		board.on('down', down);
+		imageBoard.on('down', down);
 	}
 	$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p>');
 }
@@ -302,5 +310,6 @@ drawImage(imageUrl);
 
 // TODO: save image
 
-// TODO: use two linked boards http://jsxgraph.uni-bayreuth.de/wiki/index.php/Plot_data_with_slider
+imageBoard.addChild(board); // link boards (see http://jsxgraph.uni-bayreuth.de/wiki/index.php/Plot_data_with_slider)
+
 // TODO: make it easy to have a cut down number of points for prototyping
