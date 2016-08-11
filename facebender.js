@@ -14,6 +14,11 @@ var imageBoard = JXG.JSXGraph.initBoard("imageBox", {
 	axis: true
 });
 
+// make tooltip show name of feature
+imageBoard.highlightInfobox = function(x, y, el) {
+   this.infobox.setText(el.getProperty('feature'));
+};
+
 var pointSize = 0.5;
 
 var points = [
@@ -189,9 +194,8 @@ function chooseNextFeature() {
 
 				if (canCreate) {
 					// create a point on the image
-					// TODO: make tooltip show name of feature (https://groups.google.com/forum/#!topic/jsxgraph/HMObRq6W_GQ)
-					// See also https://groups.google.com/forum/#!topic/jsxgraph/BD2LsWUFppk
-					p = imageBoard.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o'});
+					var featureLabel = features[featureIndex] + ' ' + (subFeatureIndex + 1);
+					p = imageBoard.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o', feature: featureLabel});
 					if (subFeatureIndex == 0) {
 						faceData.push([p]);
 					} else {
