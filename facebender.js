@@ -1,5 +1,5 @@
 var board = JXG.JSXGraph.initBoard("box", {
-	boundingbox: [0, 0, 250, 300],
+	boundingbox: [40, 0, 250 + 40, 300],
 	keepAspectRatio: true,
 	showCopyright: false,
 	showNavigation: false,
@@ -262,7 +262,7 @@ function bendFace() {
 	// translate back to average left pupil
 	var t3 = board.create('transform', points[0][0], {type:'translate'});
 
-	var slider = board.create('slider',[[0, 10],[100, 10],[-1, -1, 5]], {snapWidth: 0.2});
+	var slider = board.create('slider',[[100, 10],[200, 10],[-1, -1, 5]], {snapWidth: 0.2});
 	for (var feature = 0; feature < points.length; feature++) {
 		var faceFeaturePoints = faceData[feature];
 		var x = [];
