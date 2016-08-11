@@ -266,3 +266,4 @@ var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg"
 drawImage(imageUrl);
 
 // TODO: save image
+// TODO: use splines: http://jsxgraph.uni-bayreuth.de/wiki/index.php/Category:Interpolation
