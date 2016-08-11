@@ -305,7 +305,7 @@ function bendFace() {
 	}
 
 	var json = JSON.stringify(toPointsArray(faceDataTransformed));
-	// TODO: store JSON in a file or in local storage
+	localStorage.setItem('facebender', json);
 
 	$('#controls').html('<p id="instruction">Facebender</p>');
 }
@@ -318,8 +318,6 @@ function toPointsArray(jsxgraphPoints) {
 		return arr.map(function(p){return [p.X(), p.Y()];});
 	});
 }
-
-// TODO: save image
 
 imageBoard.addChild(board); // link boards (see http://jsxgraph.uni-bayreuth.de/wiki/index.php/Plot_data_with_slider)
 
