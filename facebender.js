@@ -3,7 +3,7 @@ var board = JXG.JSXGraph.initBoard("box", {
 	keepAspectRatio: true,
 	showCopyright: false,
 	showNavigation: false,
-	axis: true
+	axis: false
 });
 
 var imageBoard = JXG.JSXGraph.initBoard("imageBox", {
@@ -11,7 +11,7 @@ var imageBoard = JXG.JSXGraph.initBoard("imageBox", {
 	keepAspectRatio: true,
 	showCopyright: false,
 	showNavigation: false,
-	axis: true
+	axis: false
 });
 
 // make tooltip show name of feature
