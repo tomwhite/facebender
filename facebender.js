@@ -295,6 +295,8 @@ function bendFace() {
 		}
 		faceDataTransformed[feature] = faceFeaturePointsTransformed;
 		var c = board.create('curve', [x, y]); // TODO: use splines
+		// following fails since updateDataArray doesn't work with splines
+		// var c = board.create('curve', JXG.Math.Numerics.CatmullRomSpline(faceFeaturePointsTransformed));
 		c.updateDataArray = makeUpdater(feature, slider);
 
 	}
