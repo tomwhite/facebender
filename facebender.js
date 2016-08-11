@@ -157,7 +157,16 @@ function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
     return { width: srcWidth*ratio, height: srcHeight*ratio };
 }
 
-function resizeDone() {
+function chooseImage() {
+	// https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
+	var objectURL;
+	if ($('#file')[0].files.length == 0) {
+		objectURL = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg";
+	} else {
+		var file = $('#file')[0].files[0];
+		objectURL = window.URL.createObjectURL(file);
+	}
+	drawImage(objectURL);
 	showAverageFace();
 	chooseNextFeature();
 }
@@ -309,10 +318,6 @@ function toPointsArray(jsxgraphPoints) {
 		return arr.map(function(p){return [p.X(), p.Y()];});
 	});
 }
-
-// TODO: open an image and allow face to be cropped (do cropping externally)
-var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg"
-drawImage(imageUrl);
 
 // TODO: save image
 
