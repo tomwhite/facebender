@@ -37,9 +37,9 @@ var points = [
 //[[219,140], [222,159], [218,179],],
 //[[99,150], [92,144], [88,149], [90,160], [94,174], [99,187], [104,184],],
 //[[224,149], [231,144], [234,151], [232,160], [230,173], [224,185], [219,184],],
-//[[104,181], [108,199], [115,214], [129,228], [147,240], [162,243], [180,239], [196,228], [207,215], [215,199], [219,178],]
-//[[101,144], [107,129], [114,114], [120,104], [131,95], [146,92], [160,93], [174,95], [188,96], [201,103], [210,114], [217,
-//[[93,204], [78,173], [76,142], [82,101], [99,70], [129,46], [158,44], [188,45], [217,64], [236,94], [245,134], [250,168],
+//[[104,181], [108,199], [115,214], [129,228], [147,240], [162,243], [180,239], [196,228], [207,215], [215,199], [219,178],],
+//[[101,144], [107,129], [114,114], [120,104], [131,95], [146,92], [160,93], [174,95], [188,96], [201,103], [210,114], [217,126], [222,143],],
+//[[93,204], [78,173], [76,142], [82,101], [99,70], [129,46], [158,44], [188,45], [217,64], [236,94], [245,134], [250,168], [233,200],],
 //[[145,175], [139,182], [135,190],],
 //[[178,176], [185,183], [190,191],],
 //[[105,178], [109,184], [112,190],],
@@ -51,26 +51,45 @@ var points = [
 ];
 
 var features = [
-"left pupil",
-"right pupil",
-"left iris",
-//"right iris",
-//"bottom of left eyelid",
-//"bottom of right eyelid",
-//"bottom of left eye",
-//"bottom of right eye",
-//"top of left eye",
-//"top of right eye",
-//"left eye line",
-//"right eye line",
-//"left side of nose",
-//"right side of nose",
-//"left nostril",
-//"right nostril",
-//"top of left eyebrow",
-//"top of right eyebrow",
-//"bottom of left eyebrow",
-//"bottom of right eyebrow",
+	"Left Pupil",
+	"Right Pupil",
+	"Left Iris",
+//	"Right Iris",
+//	"Bottom of Left Eyelid",
+//	"Bottom of Right Eyelid",
+//	"Bottom of Left Eye",
+//	"Bottom of Right Eye",
+//	"Top of Left Eye",
+//	"Top of Right Eye",
+//	"Left Eye Line",
+//	"Right Eye Line",
+//	"Left Side of Nose",
+//	"Right Side of Nose",
+//	"Left Nostril",
+//	"Right Nostril",
+//	"Top of Left Eyebrow",
+//	"Top of Right Eyebrow",
+//	"Bottom of Left Eyebrow",
+//	"Bottom of Right Eyebrow",
+//	"Top of Upper Lip",
+//	"Bottom of Upper Lip",
+//	"Top of Lower Lip",
+//	"Bottom of Lower Lip",
+//	"Left Side of Face",
+//	"Right Side of Face",
+//	"Left Ear",
+//	"Right Ear",
+//	"Jaw",
+//	"Hairline",
+//	"Top of Head",
+//	"Left Cheek Line",
+//	"Right Cheek Line",
+//	"Left Cheekbone",
+//	"Right Cheekbone",
+//	"Left Upper Lip Line",
+//	"Right Upper Lip Line",
+//	"Chin Cleft",
+//	"Chin Line",
 ];
 
 var averageFaceData = [];
@@ -153,12 +172,12 @@ function chooseNextFeature() {
 				}
 				coords = getMouseCoords(e, i);
 
-				for (el in board.objects) {
-					if(JXG.isPoint(board.objects[el]) && board.objects[el].hasPoint(coords.scrCoords[1], coords.scrCoords[2])) {
-						canCreate = false;
-						break;
-					}
-				}
+//				for (el in board.objects) {
+//					if(JXG.isPoint(board.objects[el]) && board.objects[el].hasPoint(coords.scrCoords[1], coords.scrCoords[2])) {
+//						canCreate = false;
+//						break;
+//					}
+//				}
 
 				if (canCreate) {
 					// create a point on the image
@@ -210,10 +229,14 @@ function showAverageFace() {
 		if (p.length == 1) { // create point for features of length 1 (pupils)
 			var point = board.create('point', [p[0].X(), p[0].Y()], {name: '', size: pointSize, face: 'o', color: 'blue', fixed: true});
 			// don't add to averageFaceSegments as the pupils are fixed
-		}
-		for (var i = 1; i < p.length; i++) {
-			var segment = board.create('segment', [p[i-1], p[i]]);
-			averageFaceSegments.push(segment);
+		} else {
+			// TODO: use splines: http://jsxgraph.uni-bayreuth.de/wiki/index.php/Category:Interpolation
+			//var segment = board.create('curve', JXG.Math.Numerics.CatmullRomSpline(p));
+			//averageFaceSegments.push(segment);
+			for (var i = 1; i < p.length; i++) {
+				var segment = board.create('segment', [p[i-1], p[i]]);
+				averageFaceSegments.push(segment);
+			}
 		}
 	}
 }
@@ -248,7 +271,7 @@ function bendFace() {
 			averageFaceData[feature][i].setProperty({visible: false});
 		}
 		faceDataTransformed[feature] = faceFeaturePointsTransformed;
-		var c = board.create('curve', [x, y]);
+		var c = board.create('curve', [x, y]); // TODO: use splines
 		c.updateDataArray = makeUpdater(feature, slider);
 
 	}
@@ -266,4 +289,3 @@ var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg"
 drawImage(imageUrl);
 
 // TODO: save image
-// TODO: use splines: http://jsxgraph.uni-bayreuth.de/wiki/index.php/Category:Interpolation
