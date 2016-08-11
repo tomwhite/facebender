@@ -296,8 +296,11 @@ function toPointsArray(jsxgraphPoints) {
 	});
 }
 
-// TODO: open an image and allow face to be cropped
+// TODO: open an image and allow face to be cropped (do cropping externally)
 var imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg"
 drawImage(imageUrl);
 
 // TODO: save image
+
+// TODO: use two linked boards http://jsxgraph.uni-bayreuth.de/wiki/index.php/Plot_data_with_slider
+// TODO: make it easy to have a cut down number of points for prototyping
