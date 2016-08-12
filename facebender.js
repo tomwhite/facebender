@@ -214,16 +214,12 @@ function chooseNextFeature() {
 					}
 
 					// dim the corresponding point on the average face
-					averageFaceData[featureIndex][subFeatureIndex].setProperty({opacity:0.3});
+					averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true, opacity:0.3});
 
-					var subFeatureCount = points[featureIndex].length;
-					if (++subFeatureIndex == subFeatureCount) {
-						featureIndex++;
-						subFeatureIndex = 0;
-					}
+					advancePoint();
 					if (featureIndex < numFeatures) {
 						// highlight the next point on the average face
-						averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true});
+						averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true, opacity:1.0});
 						chooseNextFeature();
 					} else {
 						downEnabled = false;
@@ -234,7 +230,40 @@ function chooseNextFeature() {
 
 		imageBoard.on('down', down);
 	}
-	$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p>');
+	$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p><button onclick="undoFeature()">Undo</button>');
+}
+
+function undoFeature() {
+	if (featureIndex == 0) {
+		return;
+	}
+	// hide the current point on the average face
+	averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:false, opacity:1.0});
+	undoPoint();
+	var p = faceData[featureIndex].pop();
+	imageBoard.removeObject(p);
+	if (faceData[featureIndex].length == 0) {
+		faceData.pop();
+	}
+	// highlight the corresponding point on the average face
+	averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true, opacity:1.0});
+	$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p><button onclick="undoFeature()">Undo</button>');
+}
+
+function advancePoint() {
+	var subFeatureCount = points[featureIndex].length;
+	if (++subFeatureIndex == subFeatureCount) {
+		featureIndex++;
+		subFeatureIndex = 0;
+	}
+}
+
+function undoPoint() {
+	var subFeatureCount = points[featureIndex].length;
+	if (--subFeatureIndex == -1) {
+		featureIndex--;
+		subFeatureIndex = points[featureIndex].length - 1;
+	}
 }
 
 function showAverageFace() {
