@@ -105,7 +105,7 @@ var features = [
 	"Chin Line",
 ];
 
-var numFeatures = 3; //features.length;
+var numFeatures = features.length;
 
 var averageFaceData = [];
 var averageFaceSegments = [];
