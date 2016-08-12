@@ -298,6 +298,8 @@ function bendFace() {
     var lp = faceData[0][0];
     var rp = faceData[1][0];
 
+	// rotate around left pupil so that right pupil is on x-axis
+	var t0 = board.create('transform', [-Math.atan2(rp.Y() - lp.Y(), rp.X() - lp.X()), lp], {type:'rotate'});
 	// translate left pupil to origin
 	var t1 = board.create('transform', [-lp.X(), -lp.Y()], {type:'translate'});
 	// scale so that distance between eyes is the same as average face
@@ -314,7 +316,7 @@ function bendFace() {
 		var faceFeaturePointsTransformed = [];
 		for (var i = 0; i < faceFeaturePoints.length; i++) {
 			var fp = faceFeaturePoints[i];
-			var fpt = board.create('point', [fp, [t1, t2, t3]], {color: 'green', visible: false});
+			var fpt = board.create('point', [fp, [t0, t1, t2, t3]], {color: 'green', visible: false});
 			x[i] = fpt.X();
 			y[i] = fpt.Y();
 			faceFeaturePointsTransformed[i] = fpt;
@@ -325,7 +327,7 @@ function bendFace() {
 		faceDataTransformed[feature] = faceFeaturePointsTransformed;
 		var c = board.create('curve', [x, y]); // TODO: use splines
 		// following fails since updateDataArray doesn't work with splines
-		// var c = board.create('curve', JXG.Math.Numerics.CatmullRomSpline(faceFeaturePointsTransformed));
+		//var c = board.create('curve', JXG.Math.Numerics.CatmullRomSpline(faceFeaturePointsTransformed));
 		c.updateDataArray = makeUpdater(feature, slider);
 
 	}
