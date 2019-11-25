@@ -11,12 +11,13 @@ var imageBoard = JXG.JSXGraph.initBoard("imageBox", {
 	keepAspectRatio: true,
 	showCopyright: false,
 	showNavigation: false,
-	axis: false
+	axis: false,
+	minimizeReflow: 'none'
 });
 
 // make tooltip show name of feature
 imageBoard.highlightInfobox = function(x, y, el) {
-   this.infobox.setText(el.getProperty('feature'));
+   this.infobox.setText('<span style="color:black;">' + el.getAttribute('feature') + '</span>');
 };
 
 var pointSize = 0.5;
@@ -112,19 +113,7 @@ var averageFaceSegments = [];
 var faceData = [];
 var faceDataTransformed = [];
 
-function makeUpdater(feat, slider) {
-	return function() {
-		for (var i = 0; i < points[feat].length; i++) {
-			var normX = points[feat][i][0];
-			var normY = points[feat][i][1];
-			var faceX = faceDataTransformed[feat][i].X();
-			var faceY = faceDataTransformed[feat][i].Y();
-			this.dataX[i] = faceX + slider.Value()*(faceX-normX);
-			this.dataY[i] = faceY + slider.Value()*(faceY-normY);
-		}
-	};
-};
-
+var imageUrl;
 var image;
 
 // draw the background image
@@ -147,7 +136,7 @@ function drawImage(imageUrl) {
 	  var h = maxy - miny;
 	  var c = calculateAspectRatioFit(width, height, w, h);
 	  image = imageBoard.create('image', [imageUrl,
-		[minx + w/2 - c.width/2, c.height], [c.width, c.height] ], {fixed: true});
+		[minx + w/2 - c.width/2, c.height], [c.width, c.height] ], {fixed: true, highlight: false});
 	});
 }
 
@@ -159,16 +148,19 @@ function calculateAspectRatioFit(srcWidth, srcHeight, maxWidth, maxHeight) {
 
 function chooseImage() {
 	// https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
-	var objectURL;
 	if ($('#file')[0].files.length == 0) {
-		objectURL = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg";
+		imageUrl = "file:///Users/tom/projects-workspace/facebender/images/tom.jpg";
 	} else {
 		var file = $('#file')[0].files[0];
-		objectURL = window.URL.createObjectURL(file);
+		imageUrl = window.URL.createObjectURL(file);
 	}
-	drawImage(objectURL);
+	drawImage(imageUrl);
 	showAverageFace();
-	chooseNextFeature();
+	if (loadFaceFromLocalStorage()) {
+	    bendFace();
+	} else {
+	    chooseNextFeature();
+	}
 }
 
 var featureIndex = 0;
@@ -206,7 +198,10 @@ function chooseNextFeature() {
 				if (canCreate) {
 					// create a point on the image
 					var featureLabel = features[featureIndex] + ' ' + (subFeatureIndex + 1);
-					p = imageBoard.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o', feature: featureLabel});
+					var p = imageBoard.create('point', [coords.usrCoords[1], coords.usrCoords[2]], {name: '', size: pointSize, face: 'o', feature: featureLabel});
+                    if (featureIndex < 2) {
+                        p.setAttribute({fixed: true});
+                    }
 					if (subFeatureIndex == 0) {
 						faceData.push([p]);
 					} else {
@@ -214,15 +209,16 @@ function chooseNextFeature() {
 					}
 
 					// dim the corresponding point on the average face
-					averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true, opacity:0.3});
+					averageFaceData[featureIndex][subFeatureIndex].setAttribute({visible:true, opacity:0.3});
 
 					advancePoint();
 					if (featureIndex < numFeatures) {
 						// highlight the next point on the average face
-						averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true, opacity:1.0});
+						averageFaceData[featureIndex][subFeatureIndex].setAttribute({visible:true, opacity:1.0});
 						chooseNextFeature();
 					} else {
 						downEnabled = false;
+						saveState();
 						bendFace();
 					}
 				}
@@ -238,7 +234,7 @@ function undoFeature() {
 		return;
 	}
 	// hide the current point on the average face
-	averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:false, opacity:1.0});
+	averageFaceData[featureIndex][subFeatureIndex].setAttribute({visible:false, opacity:1.0});
 	undoPoint();
 	var p = faceData[featureIndex].pop();
 	imageBoard.removeObject(p);
@@ -246,7 +242,7 @@ function undoFeature() {
 		faceData.pop();
 	}
 	// highlight the corresponding point on the average face
-	averageFaceData[featureIndex][subFeatureIndex].setProperty({visible:true, opacity:1.0});
+	averageFaceData[featureIndex][subFeatureIndex].setAttribute({visible:true, opacity:1.0});
 	$('#controls').html('<p id="instruction">Choose ' + features[featureIndex] + ' (' + (subFeatureIndex + 1) + ' of ' + points[featureIndex].length + ')</p><button onclick="undoFeature()">Undo</button>');
 }
 
@@ -279,7 +275,7 @@ function showAverageFace() {
 		}
 		averageFaceData[feature] = p;
 		if (p.length == 1) { // create point for features of length 1 (pupils)
-			var point = board.create('point', [p[0].X(), p[0].Y()], {name: '', size: pointSize, face: 'o', color: 'blue', fixed: true});
+			var point = board.create('point', [p[0].X(), p[0].Y()], {name: '', size: pointSize, face: 'o', color: 'black', fixed: true});
 			// don't add to averageFaceSegments as the pupils are fixed
 		} else {
 			// TODO: use splines: http://jsxgraph.uni-bayreuth.de/wiki/index.php/Category:Interpolation
@@ -293,13 +289,40 @@ function showAverageFace() {
 	}
 }
 
+function loadFaceFromLocalStorage() {
+    var state = loadState();
+    if (state[imageUrl] == null) {
+        return false;
+    }
+    var facePoints = state[imageUrl].facePoints;
+    for (var feature = 0; feature < numFeatures; feature++) {
+        var featurePoints = points[feature];
+        for (var i = 0; i < featurePoints.length; i++) {
+            var featureLabel = features[feature] + ' ' + (i + 1);
+            var p = imageBoard.create('point', facePoints[feature][i], {name: '', size: pointSize, face: 'o', feature: featureLabel});
+            if (feature < 2) {
+                p.setAttribute({fixed: true});
+            }
+            if (i == 0) {
+                faceData.push([p]);
+            } else {
+                faceData[feature].push(p);
+            }
+        }
+    }
+    return true;
+}
+
 function bendFace() {
 
     var lp = faceData[0][0];
     var rp = faceData[1][0];
 
+    // create a new lp point on baord (otherwise rotation below fails)
+    var newlp = board.create('point', [lp.X(), lp.Y()], {color: 'pink', visible: false});
+
 	// rotate around left pupil so that right pupil is on x-axis
-	var t0 = board.create('transform', [-Math.atan2(rp.Y() - lp.Y(), rp.X() - lp.X()), lp], {type:'rotate'});
+	var t0 = board.create('transform', [-Math.atan2(rp.Y() - lp.Y(), rp.X() - lp.X()), newlp], {type:'rotate'});
 	// translate left pupil to origin
 	var t1 = board.create('transform', [-lp.X(), -lp.Y()], {type:'translate'});
 	// scale so that distance between eyes is the same as average face
@@ -308,7 +331,7 @@ function bendFace() {
 	// translate back to average left pupil
 	var t3 = board.create('transform', points[0][0], {type:'translate'});
 
-	var slider = board.create('slider',[[100, 10],[200, 10],[-1, -1, 5]], {snapWidth: 0.2});
+	var slider = imageBoard.create('slider',[[100, 10],[200, 10],[-1, 0, 5]], {snapWidth: 0.05});
 	for (var feature = 0; feature < numFeatures; feature++) {
 		var faceFeaturePoints = faceData[feature];
 		var x = [];
@@ -322,10 +345,10 @@ function bendFace() {
 			faceFeaturePointsTransformed[i] = fpt;
 
 			// hide average face points
-			averageFaceData[feature][i].setProperty({visible: false});
+			averageFaceData[feature][i].setAttribute({visible: false});
 		}
 		faceDataTransformed[feature] = faceFeaturePointsTransformed;
-		var c = board.create('curve', [x, y]); // TODO: use splines
+		var c = board.create('curve', [x, y], {strokeColor: 'black', handDrawing: true});
 		// following fails since updateDataArray doesn't work with splines
 		//var c = board.create('curve', JXG.Math.Numerics.CatmullRomSpline(faceFeaturePointsTransformed));
 		c.updateDataArray = makeUpdater(feature, slider);
@@ -334,13 +357,40 @@ function bendFace() {
 
 	// hide average face segments
 	for (var i = 0; i < averageFaceSegments.length; i++) {
-		averageFaceSegments[i].setProperty({visible: false});
+		averageFaceSegments[i].setAttribute({visible: false});
 	}
 
-	var json = JSON.stringify(toPointsArray(faceDataTransformed));
-	localStorage.setItem('facebender', json);
-
 	$('#controls').html('<p id="instruction">Facebender</p>');
+}
+
+function makeUpdater(feat, slider) {
+	return function() {
+		for (var i = 0; i < points[feat].length; i++) {
+			var normX = points[feat][i][0];
+			var normY = points[feat][i][1];
+			var faceX = faceDataTransformed[feat][i].X();
+			var faceY = faceDataTransformed[feat][i].Y();
+			this.dataX[i] = faceX + slider.Value()*(faceX-normX);
+			this.dataY[i] = faceY + slider.Value()*(faceY-normY);
+		}
+	};
+};
+
+function saveState() {
+    var state = loadState();
+    state[imageUrl] = {
+        "facePoints": toPointsArray(faceData)
+    };
+    var json = JSON.stringify(state);
+	localStorage.setItem('facebender', json);
+}
+
+function loadState() {
+    var state = JSON.parse(localStorage.getItem('facebender'));
+    if (state == null) {
+        state = {};
+    }
+    return state;
 }
 
 /*
